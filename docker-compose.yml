@@ -1,0 +1,40 @@
+services:
+  postgres:
+    image: postgres:17.0
+    container_name: postgres_db
+    environment:
+      POSTGRES_DB: ${DB_DATABASE:-slotgame}
+      POSTGRES_USER: ${DB_USR:-slotgame}
+      POSTGRES_PASSWORD: ${DB_PWD:-slotgame123}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./db/slotgame.sql:/docker-entrypoint-initdb.d/slotgame.sql
+
+  slotgame:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        DB_DATABASE: ${DB_DATABASE:-slotgame}
+        DB_HOST: postgres
+        DB_PORT: ${DB_PORT:-5432}
+        DB_PWD: ${DB_PWD:-slotgame123}
+        DB_USR: ${DB_USR:-slotgame}
+        JWT_SECRET: ${JWT_SECRET:-supersecret123}
+    environment:
+      DB_DATABASE: ${DB_DATABASE:-slotgame}
+      DB_HOST: postgres
+      DB_PORT: ${DB_PORT:-5432}
+      DB_PWD: ${DB_PWD:-slotgame123}
+      DB_USR: ${DB_USR:-slotgame}
+      JWT_SECRET: ${JWT_SECRET:-supersecret123}
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
+    driver: local

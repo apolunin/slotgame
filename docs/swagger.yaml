@@ -1,0 +1,361 @@
+basePath: /api
+definitions:
+  api.ErrorResponse:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    type: object
+  api.loginUserRequest:
+    properties:
+      login:
+        type: string
+      password:
+        type: string
+    type: object
+  api.loginUserResponse:
+    properties:
+      token:
+        type: string
+    type: object
+  api.registerUserRequest:
+    properties:
+      balance:
+        type: integer
+      first_name:
+        type: string
+      last_name:
+        type: string
+      login:
+        type: string
+      password:
+        type: string
+    type: object
+  api.spin:
+    properties:
+      bet_amount:
+        type: integer
+      combination:
+        type: string
+      created_at:
+        type: string
+      id:
+        type: string
+      spin_result:
+        type: string
+      user_id:
+        type: string
+      win_amount:
+        type: integer
+    type: object
+  api.spinHistoryResponse:
+    properties:
+      results:
+        items:
+          $ref: '#/definitions/api.spin'
+        type: array
+    type: object
+  api.spinRequest:
+    properties:
+      bet_amount:
+        type: integer
+    type: object
+  api.spinResponse:
+    properties:
+      balance:
+        type: integer
+      combination:
+        type: string
+      result:
+        type: string
+    type: object
+  api.walletRequest:
+    properties:
+      amount:
+        type: integer
+    type: object
+  api.walletResponse:
+    properties:
+      balance:
+        type: integer
+    type: object
+  model.User:
+    properties:
+      balance:
+        type: integer
+      first_name:
+        type: string
+      id:
+        type: string
+      last_name:
+        type: string
+      login:
+        type: string
+      password:
+        type: string
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: Simple API simulating the behaviour of a slot machine.
+  termsOfService: http://swagger.io/terms/
+  title: Slot Game API
+  version: "1.0"
+paths:
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Login a user by providing login and password
+      parameters:
+      - description: User Credentials
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/api.loginUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.loginUserResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: Login user into the system
+      tags:
+      - users
+  /profile:
+    get:
+      description: Retrieve the profile info and balance of the authenticated user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.User'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get user profile
+      tags:
+      - users
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Register a new user by providing login and password
+      parameters:
+      - description: User Data
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/api.registerUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.User'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      summary: Register a new user
+      tags:
+      - users
+  /slot/history:
+    get:
+      description: Get authenticated user's spin history
+      parameters:
+      - description: Limit the number of results
+        in: query
+        name: limit
+        type: integer
+      - description: Offset the results by this number
+        in: query
+        name: offset
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.spinHistoryResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Get authenticated user's spin history
+      tags:
+      - spins
+  /slot/spin:
+    post:
+      consumes:
+      - application/json
+      description: Spin a slot machine by authenticated user with specified bet amount
+        in cents
+      parameters:
+      - description: Spin Request
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/api.spinRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/api.spinResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Spin a slot machine by authenticated user
+      tags:
+      - spins
+  /wallet/deposit:
+    post:
+      consumes:
+      - application/json
+      description: Deposit funds to authenticated user's balance, amount is specified
+        in cents
+      parameters:
+      - description: Deposit Request
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/api.walletRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.walletResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Deposit funds to authenticated user's balance
+      tags:
+      - balances
+  /wallet/withdraw:
+    post:
+      consumes:
+      - application/json
+      description: Withdraw funds from authenticated user's balance, amount is specified
+        in cents
+      parameters:
+      - description: Withdraw Request
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/api.walletRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.walletResponse'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "429":
+          description: Too Many Requests
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/api.ErrorResponse'
+      security:
+      - ApiKeyAuth: []
+      summary: Withdraw funds from authenticated user's balance
+      tags:
+      - balances
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
